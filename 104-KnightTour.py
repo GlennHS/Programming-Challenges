@@ -1,8 +1,6 @@
 from graphics import *
 
 board = []
-boardIMG = []
-letters = []
 width = 4
 height = 4
 win = GraphWin("Knight's Tour", width * 100, height * 100)
@@ -13,66 +11,120 @@ class Cell:
         self.x = x
         self.y = y
         self.visited = False
-
-def initBoard():
+        self.knight = False
+        self.img = Rectangle(Point(self.x * 100, self.y * 100), Point(self.x * 100 + 100, self.y * 100 + 100))
+        self.img.draw(win)
+        self.changeImage()
+        
+    def changeImage(self):
+        self.img.setFill("red")
+        if(self.knight):
+            self.img.setFill("yellow")
+        elif(self.visited):
+            self.img.setFill("blue")
+       
+def redrawBoard():
+    for i in range(width):
+        for j in range(height):
+            board[i][j].changeImage()
+            
+def init():
     for i in range(width):
         board.append([])
-        boardIMG.append([])
-        letters.append([])
         for j in range(height):
-            board[i].append("-")
-            boardIMG.append(Rectangle(Point(i * 100, j * 100), Point(i * 100 + 100, j * 100 + 100)))
-            letters.append(Text(Point(i * 100 + 50, j * 100 + 50), "-")
-    board[0][0] = "K"
+            board[i].append(Cell(i, j))
+    board[0][0].knight = True
+    redrawBoard()
     
-    boardIMG[i][j].draw(win)
-    letters[i][j].draw(win)
-    
-def findKnight():
+def whereKnight():
     for i in range(width):
         for j in range(height):
-            if(board[i][j] == "K"):
-                return [i, j]
-    return "Knight not found"
+            if(board[i][j].knight == True):
+                return[i, j]
+    return "ERROR: Knight not found!"
     
-def checkValid(x, y):
-    knightLoc = findKnight()
-    oldX = knightLoc[0]
-    oldY = knightLoc[0]
-    if(oldY + 2 == y and oldX + 1 == x):
-        return True
-    elif(oldY + 2 == y and oldX - 1 == x):
-        return True
-    elif(oldY - 2 == y and oldX + 1 == x):
-        return True
-    elif(oldY - 2 == y and oldX - 1 == x):
-        return True
-    elif(oldY + 1 == y and oldX + 2 == x):
-        return True
-    elif(oldY + 1 == y and oldX - 2 == x):
-        return True
-    elif(oldY - 1 == y and oldX + 2 == x):
-        return True
-    elif(oldY - 1 == y and oldX - 2 == x):
-        return True
-    else:
-        return False
-    
+def checkValidMove(newX, newY):
+    if(board[newX][newY].visited == False):
+        knightPos = whereKnight()
+        knightX = knightPos[0]
+        knightY = knightPos[1]
+        if(knightX + 1 == newX and knightY + 2 == newY):
+            return True
+        elif(knightX + 1 == newX and knightY - 2 == newY):
+            return True
+        elif(knightX - 1 == newX and knightY + 2 == newY):
+            return True
+        elif(knightX - 1 == newX and knightY - 2 == newY):
+            return True
+        elif(knightX + 2 == newX and knightY + 1 == newY):
+            return True
+        elif(knightX + 2 == newX and knightY - 1 == newY):
+            return True
+        elif(knightX - 2 == newX and knightY + 1 == newY):
+            return True
+        elif(knightX - 2 == newX and knightY - 1 == newY):
+            return True
+        else:
+            return False
+        
+# def gameLost():
+#     knightPos = whereKnight()
+#     knightX = knightPos[0]
+#     knightY = knightPos[1]
+#     if(board[knightX + 1][knightY + 2].visited == False):
+#         return False
+#     elif(board[knightX - 1][knightY + 2].visited == False):
+#         return False
+#     elif(board[knightX + 1][knightY - 2].visited == False):
+#         return False
+#     elif(board[knightX - 1][knightY - 2].visited == False):
+#         return False
+#     elif(board[knightX + 2][knightY + 1].visited == False):
+#         return False
+#     elif(board[knightX - 2][knightY + 1].visited == False):
+#         return False
+#     elif(board[knightX + 2][knightY - 1].visited == False):
+#         return False
+#     elif(board[knightX - 2][knightY - 1].visited == False):
+#         return False
+#     else:
+#         return True
+        
 def moveKnight(newX, newY):
-    if(board[newX][newY] == "-" and checkValid(newX, newY)):
-        knightLoc = findKnight()
-        board[knightLoc[0]][knightLoc[1]] = "V"
-        board[newX][newY] = "K"
+    if(checkValidMove(newX, newY)):
+        current = whereKnight()
+        board[current[0]][current[1]].knight = False
+        board[current[0]][current[1]].visited = True
+        board[newX][newY].knight = True
+        redrawBoard()
         
-def displayBoard():
+def getClick(rawX, rawY):
     for i in range(width):
         for j in range(height):
-            boardIMG[i][j].undraw()
-            boardIMG[i][j].draw(win)
-            
+            if(rawX <= i * 100 + 100 and rawY <= j * 100 + 100):
+                return [i, j]
         
+def gameWon():
+    for i in range(width):
+        for j in range(height):
+            if(board[i][j].visited == False and board[i][j].knight == False):
+                return False
+    return True
+    
 def MAIN():
-    initBoard()
-    print(findKnight())
+    init()
+    won = False
+    # lost = False
+    # while(not won and not lost):
+    while(not won):
+        loc = win.getMouse()
+        pureClick = getClick(loc.getX(), loc.getY())
+        moveKnight(pureClick[0], pureClick[1])
+        # lost = gameLost()
+        won = gameWon()
+    # if(lost):
+    #     print("Unlucky, have another go!")
+    else:
+        print("CONGRATULATIONS!!")
     
 MAIN()
