@@ -14,12 +14,13 @@ class Piece:
         self.colour = colour
         self.isAlive = True
         self.img = Text(Point(self.x * 50 + 25, self.y * 50 + 25), type)
-        self.img.setSize(24)
         self.drawSelf()
             
     def drawSelf(self):
         if(self.isAlive):
             self.img.undraw()
+            self.img = Text(Point(self.x * 50 + 25, self.y * 50 + 25), self.type)
+            self.img.setSize(24)
             self.img.draw(win)
             if(self.colour == "w"):
                 self.img.setFill("white")
@@ -27,8 +28,8 @@ class Piece:
                 self.img.setFill("black")
                 
     def setDead(self):
-        self.isAlive = False
         self.img.undraw()
+        self.isAlive = False
             
 class Rook(Piece):
     
@@ -36,11 +37,28 @@ class Rook(Piece):
         super().__init__(x, y, colour, "r")
         
     def checkValid(self, newX, newY):
-        if((self.x == newX) ^ (self.y == newY)):
-            return True
-        else:
+        # Check moving in a cardinal direction
+        if(not((self.x == newX) ^ (self.y == newY))):
             return False
-
+        # Check not jumping over things
+        else:
+            if(self.y == newY):
+                for i in range(min(self.x, newX) + 1, max(self.x, newX), 1):
+                    if(not (board[i][self.y] == "empty")):
+                        return False
+            else:
+                print("MOVING ON Y AXIS")
+                for i in range(min(self.y, newY) + 1, max(self.y, newY), 1):
+                    if(not (board[self.x][i] == "empty")):
+                        return False
+        # Check target square not got a same colour piece in it, also handle capture
+        if(type(board[newX][newY]) == Piece):
+            if(board[newX][newY].colour == self.colour):
+                return False
+            else:
+                return True
+        return True
+        
 def genBackground():
     for i in range(8):
         for j in range(8):
@@ -85,20 +103,35 @@ def boardInit():
     board[4][0] = Piece(4, 0, "b", "k")
     board[3][7] = Piece(3, 7, "w", "k")
     # Pawns
-    for i in range(8):
-        board[i][1] = Piece(i, 1, "b", "p")
-        board[i][6] = Piece(i, 6, "w", "p")
-        
+    # for i in range(8):
+    #     board[i][1] = Piece(i, 1, "b", "p")
+    #     board[i][6] = Piece(i, 6, "w", "p")
+
+def movePiece(x, y, newX, newY):
+    print(type(board[newX][newY]))
+    moving = board[x][y]
+    if(type(board[newX][newY] == Piece)):
+        board[newX][newY].setDead()
+    board[x][y] = "empty"
+    board[newX][newY] = moving
+    board[newX][newY].x = newX
+    board[newX][newY].y = newY
+    board[newX][newY].drawSelf()
+
 def MAIN():
     genBackground()            
     boardInit()
     while(not gameOver):
-        loc = win.getMouse()
-        cleanLoc = mousePos(loc)
-        chosenPiece = board[cleanLoc[0]][cleanLoc[1]]
+        chosenPiece = "empty"
+        while(chosenPiece == "empty"):
+            loc = win.getMouse()
+            cleanLoc = mousePos(loc)
+            chosenPiece = board[cleanLoc[0]][cleanLoc[1]]
         chosenPiece.img.setFill("yellow")
         moveLoc = win.getMouse()
         cleanMoveLoc = mousePos(moveLoc)
-        isValid = chosenPiece.checkValid(cleanMoveLoc[0], cleanMoveLoc[1]))
-        
+        chosenPiece.drawSelf()
+        isValid = chosenPiece.checkValid(cleanMoveLoc[0], cleanMoveLoc[1])
+        if(isValid):
+            movePiece(cleanLoc[0], cleanLoc[1], cleanMoveLoc[0], cleanMoveLoc[1])
 MAIN()
