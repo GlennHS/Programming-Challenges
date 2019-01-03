@@ -25,11 +25,13 @@ class Character:
         self.x += x
         self.y += y
 
-    def drawSelf(self):
+    def drawSelf(self, colour = "green"):
         if(checkVis(self.x, self.y)):
-            self.img = Polygon(Point(self.x * 100 + 50, self.y * 100 + 20), Point(self.x * 100 + 20, self.y * 100 + 80), Point(self.x * 100 + 80, self.y * 100 + 80))
-            self.img.setFill("green")
-            self.img.draw(win)
+            self.img = [Polygon(Point(self.x * 100 + 50, self.y * 100 + 20), Point(self.x * 100 + 20, self.y * 100 + 80), Point(self.x * 100 + 80, self.y * 100 + 80))]
+            self.img.append(Text(Point(self.x * 100 + 50, self.y * 100 + 50), self.hp))
+            self.img[0].setFill(colour)
+            for img in (self.img):
+                img.draw(win)
         elif(not(self.img == "")):
             self.img.undraw(win)
             self.img = ""
@@ -71,9 +73,11 @@ class Enemy(Character):
 
     def drawSelf(self):
         if(checkVis(self.x, self.y)):
-            self.img = Polygon(Point(self.x * 100 + 50, self.y * 100 + 80), Point(self.x * 100 + 20, self.y * 100 + 20), Point(self.x * 100 + 80, self.y * 100 + 20))
-            self.img.setFill("red")
-            self.img.draw(win)
+            self.img = [Polygon(Point(self.x * 100 + 50, self.y * 100 + 80), Point(self.x * 100 + 20, self.y * 100 + 20), Point(self.x * 100 + 80, self.y * 100 + 20))]
+            self.img.append(Text(Point(self.x * 100 + 50, self.y * 100 + 50), self.hp))
+            self.img[0].setFill("red")
+            for img in (self.img):
+                img.draw(win)
         elif(not(self.img == "")):
             self.img.undraw(win)
             self.img = ""
@@ -97,7 +101,6 @@ class Tile:
                 self.img.undraw(win)
             self.img = ""
         else:
-            print(type(self.contains))
             self.img = Rectangle(Point(x * 100, y * 100), Point(x * 100 + 100, y * 100 + 100))
             if(self.contains == ""):
                 if(self.blocking):
@@ -111,6 +114,14 @@ class Tile:
                 except:
                     pass
             self.img.draw(win)
+
+class UI:
+
+    def __init__(self):
+        self.colour = "black"
+
+    def drawSelf(self):
+        
 
 def combat(enemy):
     pDam = player.atk()
@@ -161,9 +172,6 @@ player = Character(5, 50, 2, "2d4", "PLAYER", 1, 1)
 
 def MAIN():
     genBoard()
-    for i in range(10):
-        for j in range(10):
-            print(tileArr[i][j].contains)
     drawBoard()
     sleep(3)
 
