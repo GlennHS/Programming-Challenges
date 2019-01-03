@@ -2,9 +2,6 @@ from graphics import *
 import random
 from time import sleep
 
-win = GraphWin("Dragon Crystal Clone", 600, 600)
-gridArr = []
-
 class Character:
     
     def __init__(self, level, hp, res, dam, name, x, y):
@@ -24,24 +21,25 @@ class Character:
             out += random.randint(1, dice[1])
         return out
 
-    def drawSelf():
+    def move(self, x, y):
+        self.x += x
+        self.y += y
+
+    def drawSelf(self):
         if(checkVis(self.x, self.y)):
-            if(self.name == "PLAYER"):
-                self.img = Polygon(Point(self.x * 100 + 50, self.y * 100 + 20), Point(self.x * 100 + 20, self.y * 100 + 80), Point(self.x * 100 + 80, self.y * 100 + 80))
-                self.img.setFill("green")
-            else:
-                self.img = Polygon(Point(self.x * 100 + 50, self.y * 100 + 80), Point(self.x * 100 + 20, self.y * 100 + 20), Point(self.x * 100 + 80, self.y * 100 + 20))
-                self.img.setFill("red")
-        else:
-            self.img = ""
-        if(not(self.img == "")):
+            self.img = Polygon(Point(self.x * 100 + 50, self.y * 100 + 20), Point(self.x * 100 + 20, self.y * 100 + 80), Point(self.x * 100 + 80, self.y * 100 + 80))
+            self.img.setFill("green")
             self.img.draw(win)
+        elif(not(self.img == "")):
+            self.img.undraw(win)
+            self.img = ""
 
 class Enemy(Character):
 
     def __init__(self, level, hp, res, dam, name, x, y):
         super().__init__(level, hp, res, dam, name, x, y)
 
+    # @OVERRIDE
     def move(self, steps):
         numMoves = steps
         for i in range(steps):
@@ -71,6 +69,15 @@ class Enemy(Character):
                     else:
                         y -= 1
 
+    def drawSelf(self):
+        if(checkVis(self.x, self.y)):
+            self.img = Polygon(Point(self.x * 100 + 50, self.y * 100 + 80), Point(self.x * 100 + 20, self.y * 100 + 20), Point(self.x * 100 + 80, self.y * 100 + 20))
+            self.img.setFill("red")
+            self.img.draw(win)
+        elif(not(self.img == "")):
+            self.img.undraw(win)
+            self.img = ""
+
 class Item():
 
     def __init__(self, category, colour):
@@ -86,18 +93,23 @@ class Tile:
         
     def drawSelf(self, x, y):
         if(not(checkVis(x, y))):
-            try:
+            if(not(self.img == "")):
                 self.img.undraw(win)
-            except:
-                pass
             self.img = ""
         else:
+            print(type(self.contains))
             self.img = Rectangle(Point(x * 100, y * 100), Point(x * 100 + 100, y * 100 + 100))
             if(self.contains == ""):
                 if(self.blocking):
                     self.img.setFill("black")
                 else:
                     self.img.setFill("grey")
+            else:
+                # TODO: issubclass check fails here so temporary try/except in place
+                try:
+                    self.contains.drawSelf()
+                except:
+                    pass
             self.img.draw(win)
 
 def combat(enemy):
@@ -114,29 +126,45 @@ def checkVis(x, y):
     else:
         return True
 
+def updateTileContains():
+    for i in range(len(tileArr)):
+        for j in range(len(tileArr[i])):
+            tileArr[i][j].contains = ""
+    for ent in (entityArr):
+        tileArr[ent.x][ent.y].contains = ent
+
 def drawBoard():
-    for i in range(len(gridArr)):
-        for j in range(len(gridArr[i])):
-            gridArr[i][j].drawSelf(i, j)
+    updateTileContains()
+    for i in range(len(tileArr)):
+        for j in range(len(tileArr[i])):
+            tileArr[i][j].drawSelf(i, j)
             
 def genBoard():
     for i in range(10):
-        gridArr.append([])
+        tileArr.append([])
         for j in range(10):
-            gridArr[i].append(Tile(False, ""))
+            tileArr[i].append(Tile(False, ""))
     for i in range(10):
-        gridArr[i][0].blocking = True
-        gridArr[i][9].blocking = True
-        gridArr[0][i].blocking = True
-        gridArr[9][i].blocking = True
-    gridArr[1][1].contains = player
-    gridArr[1][2].contains = Enemy(5, 100, 4, "4d4", "BOB", 1, 2)
-            
+        tileArr[i][0].blocking = True
+        tileArr[i][9].blocking = True
+        tileArr[0][i].blocking = True
+        tileArr[9][i].blocking = True
+    entityArr.append(player)
+    entityArr.append(Enemy(5, 100, 4, "4d4", "BOB", 1, 2))
+    updateTileContains()
+
+
+win = GraphWin("Dragon Crystal Clone", 600, 600)
+tileArr = []
+entityArr = []
+player = Character(5, 50, 2, "2d4", "PLAYER", 1, 1)
+
 def MAIN():
     genBoard()
+    for i in range(10):
+        for j in range(10):
+            print(tileArr[i][j].contains)
     drawBoard()
     sleep(3)
-
-player = Character(5, 50, 2, "2d4", "PLAYER", 1, 1)
 
 MAIN()
