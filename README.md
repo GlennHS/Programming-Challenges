@@ -14,6 +14,6 @@
 *NOTES*
 
 * 47 isn't in DONE because the python is from wikipedia. I hope to recreate it myself but I refuse to plagiarize.
-* 43 has two solutions. The python one is recursive and, in my opinion, more elegant
+* 53 has two solutions. The python one is recursive and, in my opinion, more elegant
 * 104 can't check for a loss but that's not critical for an MVP so I don't mind
 * 125 involves checking for mate and currently having an undraw issue
